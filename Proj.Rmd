@@ -1,0 +1,40 @@
+---
+title: "Title"
+output: html_document
+echo: FALSE
+---
+## Executive Summary
+
+### Loading the Data
+The data is available from mtcars dataset. It is loaded using the data function. 
+```{r load data, cache=TRUE}
+data(mtcars)
+```
+
+### Exploratory Analysis
+
+We create two boxplots to examine the following relationships:
+
+* mpg v/s number of cylinders
+* mpg v/s transimission type
+
+Figure 1 in the appendix shows the plots. From the plot, it is clear that a relationship exists between mpg and number of cylinders and transmission type.  
+
+### Regression Models
+### Results
+
+### Apendix
+<figure>
+```{r box plot, echo=FALSE}
+par(mfrow=c(1,2))
+with(mtcars, 
+{
+         boxplot(mpg~cyl,col="green4")
+         title(main="Mpg vs number of cylinders", xlab = "Number of cylinders", ylab="miles per gallon")
+         boxplot(mpg~am,col="blue", xaxt="n")
+         title(main="Mpg vs transmission", xlab = "Transimission", ylab="miles per gallon")        
+         axis(1, at=1:2, labels=c("Automatic", "Manual"))
+})
+```
+<figcaption> Figure 1: Exploratory analysis of mpg v/s number of cylinders and transmission type <figcaption/>
+</figure>
