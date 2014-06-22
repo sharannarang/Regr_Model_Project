@@ -1,7 +1,6 @@
 ---
-title: "Title"
+title: "Impact of transmission type on mileage"
 output: html_document
-echo: FALSE
 ---
 ## Executive Summary
 
@@ -13,15 +12,51 @@ data(mtcars)
 
 ### Exploratory Analysis
 
-We create two boxplots to examine the following relationships:
+We create exploratory plots to examine the following relationships:
 
-* mpg v/s number of cylinders
-* mpg v/s transimission type
+* mpg v/s number of cylinders (cyl)
+* mpg v/s transimission type (am)
+* mpg v/s weight of the cars (wt)
+* mpg v/s gross horsepower (hp)
 
-Figure 1 in the appendix shows the plots. From the plot, it is clear that a relationship exists between mpg and number of cylinders and transmission type.  
+Figure 1 & 2 in the appendix shows the plots. The mean mpg is also shown on the plot. The plot shows that manual transmission cars have a higher median mpg than automatic transmission cars. It is also evident that the weight, number of cylinders and gross horsepower negatively impact the miles per gallon. 
 
 ### Regression Models
+In order to examine the relationship between mpg and transmission, a nested model approach is used. Several models are created starting with the simple model of transimission as predictor. The nested variables for the models are weight, interaction between weight and transmission and  number of cylinders(or horsepower).The gross horsepower and number of cylinders have a correlation of `r cor(mtcars$hp,mtcars$cyl)`.Since they highly correlated, both of these variables are not included in any models. 
+
+```{r model generation, echo=FALSE}
+fit.am <- lm(mpg~am,mtcars)
+fit.am.wt <- lm(mpg~am+wt,mtcars)
+fit.am.wt.int <- lm(mpg~am+wt+am:wt,mtcars)
+fit.am.wt.int.cyl <- lm(mpg~am+wt+am:wt+as.factor(cyl),mtcars)
+fit.am.wt.int.hp <- lm(mpg~am+wt+am:wt+hp,mtcars)
+```
+
+As a result, we end up with five models. The anova function is used to analyse the models. The inclusion of weight and interaction between weight and transmision reduces the sum of squared residuals. Finally, the model with the number of cylinders and horse power are compared to determine the optimal model.
+
+```{r model comparison,echo=TRUE}
+cylinder<-anova(fit.am.wt.int,fit.am.wt.int.cyl)
+horsepower<-anova(fit.am.wt.int,fit.am.wt.int.hp)
+```
+
+The sum of residuals squared for the model with cylinders (RSS:`r cylinder$RSS[2]`) is lower than the model with horsepower(RSS:`r horsepower$RSS[2]`). However, the p-value for the model with horspower (`r horsepower[2,"Pr(>F)"]`) is smaller than the p-value for the model with the cylinder (`r cylinder[2,"Pr(>F)"]`). Therefore, we choose the model which includes the horsepower as the best fit. Finally, the model is described as (using R style notation):
+
+mpg ~ am + wt + am:wt + hp
+
+### Residual Analysis
+
+The residuals are analysed by generating four different plots as shown in figure 3. We can derive the following conclusions from the plots. 
+
+1. The residuals are scattered across fitted values and there aren't any patterns in the residuals. 
+
+2. The standardized residuals follow the standard normal quantiles for smaller values. For a some of the larger values,  the standardized residuals drift away from the theoretical quantiles. This indicates that there are a few outliers in the data.
+
+3. The plot of the residuals v/s leverage confirms the presense of a few outliers that have significant leverage on the model. 
+
+We have also shown the plot of density of the residuals. It closely resembles a standard normal distribution. 
+
 ### Results
+only 32 observations in the mtcars dataset. 
 
 ### Apendix
 <figure>
@@ -29,12 +64,41 @@ Figure 1 in the appendix shows the plots. From the plot, it is clear that a rela
 par(mfrow=c(1,2))
 with(mtcars, 
 {
-         boxplot(mpg~cyl,col="green4")
-         title(main="Mpg vs number of cylinders", xlab = "Number of cylinders", ylab="miles per gallon")
-         boxplot(mpg~am,col="blue", xaxt="n")
-         title(main="Mpg vs transmission", xlab = "Transimission", ylab="miles per gallon")        
-         axis(1, at=1:2, labels=c("Automatic", "Manual"))
+     boxplot(mpg~cyl,col="green4")
+     title(main="Mpg vs number of cylinders", xlab = "Number of cylinders", ylab="miles per gallon")
+     abline(h=mean(mpg), lwd = 2, col="purple")
+     legend("topright", legend="Mean MPG", lwd = 2, col ="purple")         
+     boxplot(mpg~am,col="blue", xaxt="n")
+     title(main="Mpg vs transmission", xlab = "Transimission", ylab="miles per gallon")        
+     axis(1, at=1:2, labels=c("Automatic", "Manual"))
+     abline(h=mean(mpg), lwd = 2, col="purple")
 })
 ```
-<figcaption> Figure 1: Exploratory analysis of mpg v/s number of cylinders and transmission type <figcaption/>
+<figcaption> Figure 1: Exploratory analysis of different relationships </figcaption>
+</figure>
+```{r scatter plot, echo=FALSE}
+par(mfrow=c(1,2))
+with(mtcars,
+{    
+     plot(wt,mpg,pch=20,col=(am==0)*1+1,main="Mpg vs weight", xlab="Car weight", ylab="miles per gallon")
+     legend("topright", legend=c("Automatic", "Manual"), pch=c(20,20), col =c(2,1))
+     plot(hp,mpg,pch=20,col=(am==0)*1+1,main="Mpg vs HP", xlab="Gross Horsepower", ylab="miles per gallon")
+     legend("topright", legend=c("Automatic", "Manual"), pch=c(20,20), col =c(2,1))
+})
+```
+<figcaption> Figure 2: Exploratory analysis of different relationships </figcaption>
+</figure>
+
+<figure>
+```{r resid_plot, echo=FALSE}
+par(mfrow=c(2,2))
+plot(fit.am.wt.int.hp)
+```
+<figcaption> Figure 3: Residual analysis plots </figcaption>
+</figure>
+<figure>
+```{r denisty,echo=FALSE}
+plot(density.default(resid(fit.am.wt.int.hp)))
+```
+<figcaption> Figure 4: Denisty of residual values </figcaption>
 </figure>
