@@ -2,22 +2,12 @@
 title: "Impact of transmission type on mileage"
 output: html_document
 ---
-## Executive Summary
-
-### Loading the Data
-The data is available from mtcars dataset. It is loaded using the data function. 
-```{r load data, cache=TRUE}
-data(mtcars)
-```
+### Executive Summary
+In this report, we examine the relationship between transmission of a car and the miles per gallon. The data was extracted from the 1974 Motor Trend magazine and is available as a part of the R default datasets. After analyzing several different models, we determine that the best model for predicting miles per gallon includes transmission, weight, horsepower and an interaction between transmission and weight. It is not possible to conclude which transmission type is better in isolation. For heavier cars, an automactic transmission might be prefered. The model doesn't take into account any extrinsic features like road conditions. 
 
 ### Exploratory Analysis
 
-We create exploratory plots to examine the following relationships:
-
-* mpg v/s number of cylinders (cyl)
-* mpg v/s transimission type (am)
-* mpg v/s weight of the cars (wt)
-* mpg v/s gross horsepower (hp)
+After loading the data from the mtcars dataset, we create exploratory plots to examine the relationships between miles per gallon (mpg) and number of cylinders(cyl), transmision(am), weight(wt) and gross horsepower(hp).
 
 Figure 1 & 2 in the appendix shows the plots. The mean mpg is also shown on the plot. The plot shows that manual transmission cars have a higher median mpg than automatic transmission cars. It is also evident that the weight, number of cylinders and gross horsepower negatively impact the miles per gallon. 
 
@@ -34,12 +24,12 @@ fit.am.wt.int.hp <- lm(mpg~am+wt+am:wt+hp,mtcars)
 
 As a result, we end up with five models. The anova function is used to analyse the models. The inclusion of weight and interaction between weight and transmision reduces the sum of squared residuals. Finally, the model with the number of cylinders and horse power are compared to determine the optimal model.
 
-```{r model comparison,echo=TRUE}
+```{r model comparison,echo=FALSE}
 cylinder<-anova(fit.am.wt.int,fit.am.wt.int.cyl)
 horsepower<-anova(fit.am.wt.int,fit.am.wt.int.hp)
 ```
 
-The sum of residuals squared for the model with cylinders (RSS:`r cylinder$RSS[2]`) is lower than the model with horsepower(RSS:`r horsepower$RSS[2]`). However, the p-value for the model with horspower (`r horsepower[2,"Pr(>F)"]`) is smaller than the p-value for the model with the cylinder (`r cylinder[2,"Pr(>F)"]`). Therefore, we choose the model which includes the horsepower as the best fit. Finally, the model is described as (using R style notation):
+The sum of residuals squared for the model with cylinders (RSS:`r cylinder$RSS[2]`) is lower than the model with horsepower(RSS:`r horsepower$RSS[2]`). However, the p-value for the model with horspower (`r horsepower[2,"Pr(>F)"]`) is smaller than the p-value for the model with the cylinder (`r cylinder[2,"Pr(>F)"]`). Therefore, we choose the model which includes the horsepower as the best fit. The Adjusted R-squared value for this model is `r summary(fit.am.wt.int.hp)$adj.r.squared`. Finally, the model is described as (using R style notation):
 
 mpg ~ am + wt + am:wt + hp
 
@@ -51,12 +41,33 @@ The residuals are analysed by generating four different plots as shown in figure
 
 2. The standardized residuals follow the standard normal quantiles for smaller values. For a some of the larger values,  the standardized residuals drift away from the theoretical quantiles. This indicates that there are a few outliers in the data.
 
-3. The plot of the residuals v/s leverage confirms the presense of a few outliers that have significant leverage on the model. 
+3. The plot of the residuals v/s leverage confirms the presense of a few outliers that have leverage on the model. 
 
-We have also shown the plot of density of the residuals. It closely resembles a standard normal distribution. 
+There is a reasonable amount variation in the hatvalues. This also confirms the presence of a couple of outliers. 
+
+```{r hatvalues, echo=FALSE}
+summary(hatvalues(fit.am.wt.int.hp))
+```
+
+Since the plot is part of the R standard library package, we conclude that none of the outliers are due to data entry errors and include all of them in our model. 
+
+We have also shown the plot of density of the residuals in figure 4. It closely resembles a standard normal distribution. 
 
 ### Results
-only 32 observations in the mtcars dataset. 
+From the model, we can conclude that transmission type is significant in determining the mileage offered by a car. Performing theoretical analysis, for a car with zero weight and zero horsepower, the expected mpg for a car with automatic transmission is `r coefficients(fit.am.wt.int.hp)[1]`. The expected mpg for a car with manual transmission under same settings is `r sum(coefficients(fit.am.wt.int.hp)[c(1,2)])`. This seems to indicate that manual transmissions are better than automatic transmission. 
+
+However, it also noticeable that the mpg reduces as the weight and horsepower of the car increase. The interaction between weight and transmission is also important in determining the change in mpg as other parameters change. For an automatic transmission, the mpg reduces by `r coefficients(fit.am.wt.int.hp)[3]` for an increase of 1000 lbs in car weight (holding horsepower constant). The decrease in mpg per 1000 lb increase in weight for a manual transmission is `r sum(coefficients(fit.am.wt.int.hp)[c(3,5)])`. This indicates that mpg decreases more rapidly for manual transmission cars as the weight increases.
+
+Therefore, the transmission type alone cannot determine the miles per gallon of a car. It is not possible to determine which transmission type is better since other variables play a significant role in determine the mileage. 
+
+Our model has several limitations. We highlight them below: 
+
+1. The model was built using only 32 cars in the dataset. This doesn't represent the complete set of cars available in the market. 
+2. The dataset was compiled together from a 1974 publication. There have been significant advances in technology which would impact miles per gallon.
+3. There is no mention of how the miles per gallon was calculated in the dataset. The mileage offered by a car can vary significantly depending on road conditions, highway vs city driving & weather conditions. None of these factors were taken into account in the model. 
+
+<br />
+<br />
 
 ### Apendix
 <figure>
@@ -80,7 +91,7 @@ with(mtcars,
 par(mfrow=c(1,2))
 with(mtcars,
 {    
-     plot(wt,mpg,pch=20,col=(am==0)*1+1,main="Mpg vs weight", xlab="Car weight", ylab="miles per gallon")
+     plot(wt,mpg,pch=20,col=(am==0)*1+1,main="Mpg vs weight", xlab="Car weight (thousand lbs)", ylab="miles per gallon")
      legend("topright", legend=c("Automatic", "Manual"), pch=c(20,20), col =c(2,1))
      plot(hp,mpg,pch=20,col=(am==0)*1+1,main="Mpg vs HP", xlab="Gross Horsepower", ylab="miles per gallon")
      legend("topright", legend=c("Automatic", "Manual"), pch=c(20,20), col =c(2,1))
