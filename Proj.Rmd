@@ -29,7 +29,7 @@ cylinder<-anova(fit.am.wt.int,fit.am.wt.int.cyl)
 horsepower<-anova(fit.am.wt.int,fit.am.wt.int.hp)
 ```
 
-The sum of residuals squared for the model with cylinders (RSS:`r cylinder$RSS[2]`) is lower than the model with horsepower(RSS:`r horsepower$RSS[2]`). However, the p-value for the model with horspower (`r horsepower[2,"Pr(>F)"]`) is smaller than the p-value for the model with the cylinder (`r cylinder[2,"Pr(>F)"]`). Therefore, we choose the model which includes the horsepower as the best fit. The Adjusted R-squared value for this model is `r summary(fit.am.wt.int.hp)$adj.r.squared`. Finally, the model is described as (using R style notation):
+The sum of residuals squared for the model with cylinders (RSS:`r cylinder$RSS[2]`) is lower than the model with horsepower(RSS:`r horsepower$RSS[2]`). However, the p-value for the model with horspower (`r horsepower[2,"Pr(>F)"]`) is smaller than the p-value for the model with the cylinder (`r cylinder[2,"Pr(>F)"]`). Therefore, we choose the model which includes the horsepower as the best fit. The Adjusted R-squared value for this model is `r summary(fit.am.wt.int.hp)$adj.r.squared`. The model is described as (using R style notation):
 
 mpg ~ am + wt + am:wt + hp
 
